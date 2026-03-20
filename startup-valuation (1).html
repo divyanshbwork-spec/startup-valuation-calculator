@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valuation OS — Startup Worth Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f8f7f5;
+    --surface2: #f0eeeb;
+    --surface3: #e8e5e0;
+    --border: rgba(0,0,0,0.08);
+    --border-active: rgba(232,137,55,0.5);
+    --text: #1a1814;
+    --text-muted: #6b6660;
+    --text-dim: #a8a29e;
+    --accent: #E88937;
+    --accent-dark: #c96e1e;
+    --accent-light: rgba(232,137,55,0.10);
+    --accent2: #e8915a;
+    --accent3: #2a9d7a;
+    --accent4: #7c5cbf;
+    --red: #d94f4f;
+    --green: #2a9d6e;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+  }
+
+  .logo {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent); }
+
+  .stage-badges {
+    display: flex;
+    gap: 6px;
+  }
+  .stage-badge {
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-size: 0.68rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+  }
+  .stage-badge:hover, .stage-badge.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  /* Hero */
+  .hero {
+    padding: 60px 40px 40px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    background: linear-gradient(135deg, #fff 60%, rgba(232,137,55,0.05) 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-left h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    max-width: 500px;
+    color: var(--text);
+  }
+  .hero-left h1 em {
+    color: var(--accent);
+    font-style: italic;
+  }
+  .hero-left p {
+    margin-top: 16px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    max-width: 400px;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  /* Big valuation display */
+  .valuation-hero {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .valuation-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .valuation-number {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--accent);
+    transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .valuation-range {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  /* Main layout */
+  .main {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 180px);
+  }
+
+  /* Left sidebar — inputs */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 0;
+    overflow-y: auto;
+    background: var(--surface);
+  }
+
+  .tab-nav {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 10;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 14px 8px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+
+  .tab-panel { display: none; padding: 24px; }
+  .tab-panel.active { display: block; }
+
+  /* Input groups */
+  .input-section {
+    margin-bottom: 28px;
+  }
+  .input-section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .field {
+    margin-bottom: 18px;
+  }
+  .field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .field-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tooltip {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--surface3);
+    color: var(--text-dim);
+    font-size: 0.55rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    position: relative;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+  }
+  .tooltip:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--text);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.68rem;
+    color: #fff;
+    white-space: normal;
+    width: 180px;
+    z-index: 999;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+  }
+  .field-value {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* Slider */
+  input[type=range] {
+    width: 100%;
+    height: 3px;
+    appearance: none;
+    background: var(--surface3);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(232,137,55,0.35);
+    transition: transform 0.15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+  /* Select */
+  select {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 8px 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  select:focus { border-color: var(--accent); }
+
+  /* Score buttons */
+  .score-buttons {
+    display: flex;
+    gap: 4px;
+  }
+  .score-btn {
+    flex: 1;
+    padding: 7px 4px;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .score-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .score-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* Right panel — results */
+  .results {
+    padding: 32px;
+    background: var(--bg);
+  }
+
+  /* Method cards */
+  .methods-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .method-card {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .method-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--method-color, var(--accent));
+  }
+  .method-card:hover {
+    border-color: rgba(232,137,55,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(232,137,55,0.1);
+  }
+  .method-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .method-value {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    transition: all 0.4s;
+  }
+  .method-desc {
+    font-size: 0.68rem;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+  .method-weight {
+    position: absolute;
+    top: 14px; right: 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--text-dim);
+  }
+
+  /* Bar chart */
+  .chart-section {
+    margin-bottom: 32px;
+  }
+  .section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .bar-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    width: 110px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .bar-track {
+    flex: 1;
+    height: 26px;
+    background: var(--surface2);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s cubic-bezier(0.34,1.1,0.64,1);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    min-width: 50px;
+  }
+  .bar-val {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  /* Scenario cards */
+  .scenarios {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .scenario-card {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .scenario-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .scenario-val {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    transition: all 0.4s;
+  }
+  .scenario-card.bear .scenario-label { color: var(--red); }
+  .scenario-card.base .scenario-label { color: var(--accent); }
+  .scenario-card.bull .scenario-label { color: var(--green); }
+  .scenario-card.bear .scenario-val { color: var(--red); }
+  .scenario-card.base .scenario-val { color: var(--accent); }
+  .scenario-card.bull .scenario-val { color: var(--green); }
+
+  /* KPI grid */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .kpi-card {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .kpi-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .kpi-val {
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+  }
+  .kpi-status {
+    font-size: 0.6rem;
+    font-weight: 600;
+    margin-top: 4px;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .kpi-status.good { color: var(--green); }
+  .kpi-status.warn { color: var(--accent); }
+  .kpi-status.bad { color: var(--red); }
+
+  /* Investor readiness */
+  .readiness-bar {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .readiness-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .readiness-score {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .readiness-track {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .readiness-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f0a855, var(--accent));
+    border-radius: 4px;
+    transition: width 0.7s cubic-bezier(0.34,1.1,0.64,1);
+  }
+  .readiness-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .readiness-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .readiness-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-good { background: var(--green); }
+  .dot-warn { background: var(--accent); }
+  .dot-bad { background: var(--red); }
+
+  /* Insights */
+  .insights {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .insight-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .insight-item:last-child { border-bottom: none; }
+  .insight-icon {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    width: 20px;
+  }
+
+  /* Cap table */
+  .captable {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .captable-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+  }
+  .captable-row:last-child { border-bottom: none; }
+  .captable-name { color: var(--text-muted); font-weight: 500; }
+  .captable-pct {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .captable-bar-mini {
+    flex: 1;
+    margin: 0 16px;
+    height: 5px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .captable-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  /* Sensitivity */
+  .sensitivity-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+  .sens-cell {
+    padding: 8px 4px;
+    text-align: center;
+    border-radius: 6px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  .sens-header {
+    color: var(--text-dim);
+    font-size: 0.53rem;
+    font-weight: 700;
+  }
+
+  /* Export button */
+  .export-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .export-btn:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(232,137,55,0.3);
+  }
+
+  /* Animations */
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .method-card { animation: fadeSlideIn 0.4s ease both; }
+  .method-card:nth-child(1) { animation-delay: 0.05s; }
+  .method-card:nth-child(2) { animation-delay: 0.1s; }
+  .method-card:nth-child(3) { animation-delay: 0.15s; }
+  .method-card:nth-child(4) { animation-delay: 0.2s; }
+  .method-card:nth-child(5) { animation-delay: 0.25s; }
+  .method-card:nth-child(6) { animation-delay: 0.3s; }
+
+  @keyframes numFlash {
+    0% { color: var(--accent); }
+    50% { color: var(--accent-dark); opacity: 0.7; }
+    100% { color: var(--accent); }
+  }
+  .flash { animation: numFlash 0.35s ease; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .methods-grid { grid-template-columns: 1fr 1fr; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    header { padding: 16px 20px; }
+    .hero { padding: 30px 20px 20px; flex-direction: column; align-items: flex-start; }
+    .valuation-hero { text-align: left; }
+    .results { padding: 20px; }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Valuation<span>OS</span></div>
+  <div class="stage-badges">
+    <button class="stage-badge active" data-stage="pre-seed" onclick="setStage('pre-seed',this)">Pre-Seed</button>
+    <button class="stage-badge" data-stage="seed" onclick="setStage('seed',this)">Seed</button>
+    <button class="stage-badge" data-stage="series-a" onclick="setStage('series-a',this)">Series A</button>
+    <button class="stage-badge" data-stage="series-b" onclick="setStage('series-b',this)">Series B</button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-left">
+    <h1>What is your startup <em>actually</em> worth?</h1>
+    <p>6 valuation methods. Scenario analysis. Investor readiness score. Built for founders who want the real picture.</p>
+  </div>
+  <div class="valuation-hero">
+    <div class="valuation-label">Blended Valuation</div>
+    <div class="valuation-number" id="heroVal">$4.2M</div>
+    <div class="valuation-range" id="heroRange">Range: $2.1M — $8.4M</div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('fundamentals',this)">Fundamentals</button>
+      <button class="tab-btn" onclick="switchTab('team',this)">Team</button>
+      <button class="tab-btn" onclick="switchTab('market',this)">Market</button>
+      <button class="tab-btn" onclick="switchTab('round',this)">Round</button>
+    </div>
+
+    <!-- Fundamentals Tab -->
+    <div class="tab-panel active" id="tab-fundamentals">
+      <div class="input-section">
+        <div class="input-section-title">Business Model</div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Industry
+              <span class="tooltip" data-tip="Industry affects revenue multiples significantly. SaaS commands higher multiples than services.">?</span>
+            </span>
+          </div>
+          <select id="industry" onchange="recalculate()">
+            <option value="saas">SaaS / Software</option>
+            <option value="fintech">FinTech</option>
+            <option value="healthtech">HealthTech</option>
+            <option value="marketplace">Marketplace</option>
+            <option value="ecommerce">E-Commerce / DTC</option>
+            <option value="deeptech">Deep Tech / AI</option>
+            <option value="consumer">Consumer App</option>
+            <option value="services">Services</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Business Model</span>
+          </div>
+          <select id="bizmodel" onchange="recalculate()">
+            <option value="subscription">Subscription / SaaS</option>
+            <option value="transactional">Transactional</option>
+            <option value="marketplace">Marketplace (take rate)</option>
+            <option value="advertising">Advertising</option>
+            <option value="enterprise">Enterprise / Services</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Geography</span>
+          </div>
+          <select id="geo" onchange="recalculate()">
+            <option value="us">🇺🇸 North America</option>
+            <option value="eu">🇪🇺 Europe</option>
+            <option value="asia">🌏 Asia</option>
+            <option value="latam">🌎 LatAm / Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="input-section">
+        <div class="input-section-title">Financials</div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Monthly Revenue (MRR) <span class="tooltip" data-tip="Monthly Recurring Revenue. Use 0 if pre-revenue.">?</span></span>
+            <span class="field-value" id="mrrVal">$25K</span>
+          </div>
+          <input type="range" id="mrr" min="0" max="500" value="25" step="5" oninput="recalculate()">
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Revenue Growth Rate <span class="tooltip" data-tip="Month-over-month growth. 15%+ is excellent for early stage.">?</span></span>
+            <span class="field-value" id="growthVal">15%/mo</span>
+          </div>
+          <input type="range" id="growth" min="0" max="50" value="15" step="1" oninput="recalculate()">
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Gross Margin <span class="tooltip" data-tip="SaaS typically 70-85%. Services can be 20-40%. Higher = better valuation.">?</span></span>
+            <span class="field-value" id="marginVal">70%</span>
+          </div>
+          <input type="range" id="margin" min="10" max="95" value="70" step="5" oninput="recalculate()">
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Monthly Burn Rate <span class="tooltip" data-tip="How much cash you spend per month. Lower burn = more efficient startup.">?</span></span>
+            <span class="field-value" id="burnVal">$40K/mo</span>
+          </div>
+          <input type="range" id="burn" min="5" max="500" value="40" step="5" oninput="recalculate()">
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Cash Runway <span class="tooltip" data-tip="Months of runway left. 18+ months is comfortable for fundraising.">?</span></span>
+            <span class="field-value" id="runwayVal">12 mo</span>
+          </div>
+          <input type="range" id="runway" min="1" max="36" value="12" step="1" oninput="recalculate()">
+        </div>
+      </div>
+
+      <div class="input-section">
+        <div class="input-section-title">Unit Economics</div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Customer Count <span class="tooltip" data-tip="Total paying customers. More customers = lower concentration risk.">?</span></span>
+            <span class="field-value" id="custVal">120</span>
+          </div>
+          <input type="range" id="customers" min="0" max="5000" value="120" step="10" oninput="recalculate()">
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Net Revenue Retention <span class="tooltip" data-tip="NRR >100% means customers expand. Best SaaS companies have 120%+ NRR.">?</span></span>
+            <span class="field-value" id="nrrVal">105%</span>
+          </div>
+          <input type="range" id="nrr" min="60" max="150" value="105" step="5" oninput="recalculate()">
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">CAC Payback Period <span class="tooltip" data-tip="Months to recoup customer acquisition cost. Under 12 months is excellent.">?</span></span>
+            <span class="field-value" id="cacVal">8 mo</span>
+          </div>
+          <input type="range" id="cac" min="1" max="36" value="8" step="1" oninput="recalculate()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Tab -->
+    <div class="tab-panel" id="tab-team">
+      <div class="input-section">
+        <div class="input-section-title">Founding Team Quality</div>
+        <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:16px; line-height:1.5; font-family:'Montserrat',sans-serif; font-weight:500">Rate each dimension 1–5. Team quality significantly affects early-stage valuations.</p>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Domain Expertise</span>
+            <span class="field-value" id="domainScore">3</span>
+          </div>
+          <div class="score-buttons" id="domain-btns">
+            <button class="score-btn" onclick="setScore('domain',1,this)">1</button>
+            <button class="score-btn" onclick="setScore('domain',2,this)">2</button>
+            <button class="score-btn active" onclick="setScore('domain',3,this)">3</button>
+            <button class="score-btn" onclick="setScore('domain',4,this)">4</button>
+            <button class="score-btn" onclick="setScore('domain',5,this)">5</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Previous Exits / Track Record</span>
+            <span class="field-value" id="exitScore">2</span>
+          </div>
+          <div class="score-buttons" id="exit-btns">
+            <button class="score-btn" onclick="setScore('exit',1,this)">1</button>
+            <button class="score-btn active" onclick="setScore('exit',2,this)">2</button>
+            <button class="score-btn" onclick="setScore('exit',3,this)">3</button>
+            <button class="score-btn" onclick="setScore('exit',4,this)">4</button>
+            <button class="score-btn" onclick="setScore('exit',5,this)">5</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Technical Capability</span>
+            <span class="field-value" id="techScore">4</span>
+          </div>
+          <div class="score-buttons" id="tech-btns">
+            <button class="score-btn" onclick="setScore('tech',1,this)">1</button>
+            <button class="score-btn" onclick="setScore('tech',2,this)">2</button>
+            <button class="score-btn" onclick="setScore('tech',3,this)">3</button>
+            <button class="score-btn active" onclick="setScore('tech',4,this)">4</button>
+            <button class="score-btn" onclick="setScore('tech',5,this)">5</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Sales / GTM Ability</span>
+            <span class="field-value" id="salesScore">3</span>
+          </div>
+          <div class="score-buttons" id="sales-btns">
+            <button class="score-btn" onclick="setScore('sales',1,this)">1</button>
+            <button class="score-btn" onclick="setScore('sales',2,this)">2</button>
+            <button class="score-btn active" onclick="setScore('sales',3,this)">3</button>
+            <button class="score-btn" onclick="setScore('sales',4,this)">4</button>
+            <button class="score-btn" onclick="setScore('sales',5,this)">5</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Network / Relationships</span>
+            <span class="field-value" id="networkScore">3</span>
+          </div>
+          <div class="score-buttons" id="network-btns">
+            <button class="score-btn" onclick="setScore('network',1,this)">1</button>
+            <button class="score-btn" onclick="setScore('network',2,this)">2</button>
+            <button class="score-btn active" onclick="setScore('network',3,this)">3</button>
+            <button class="score-btn" onclick="setScore('network',4,this)">4</button>
+            <button class="score-btn" onclick="setScore('network',5,this)">5</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-section">
+        <div class="input-section-title">Team Stats</div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Team Size</span>
+            <span class="field-value" id="teamSizeVal">6</span>
+          </div>
+          <input type="range" id="teamsize" min="1" max="100" value="6" step="1" oninput="recalculate()">
+        </div>
+        <div class="field">
+          <div class="field-label">Founder Full-Time Commitment</div>
+          <select id="commitment" onchange="recalculate()" style="margin-top:8px">
+            <option value="1">Full-time (all founders)</option>
+            <option value="0.85">Mostly full-time</option>
+            <option value="0.6">Mixed</option>
+            <option value="0.4">Part-time</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Tab -->
+    <div class="tab-panel" id="tab-market">
+      <div class="input-section">
+        <div class="input-section-title">Market Size</div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Total Addressable Market (TAM) <span class="tooltip" data-tip="The full market demand if you captured 100%. Measured in $B.">?</span></span>
+            <span class="field-value" id="tamVal">$5B</span>
+          </div>
+          <input type="range" id="tam" min="0.1" max="1000" value="5" step="0.5" oninput="recalculate()">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Serviceable Market (SAM) %</span>
+            <span class="field-value" id="samVal">10%</span>
+          </div>
+          <input type="range" id="sam" min="1" max="50" value="10" step="1" oninput="recalculate()">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Market Growth Rate</span>
+            <span class="field-value" id="mktgrowthVal">25%</span>
+          </div>
+          <input type="range" id="mktgrowth" min="0" max="100" value="25" step="5" oninput="recalculate()">
+        </div>
+      </div>
+
+      <div class="input-section">
+        <div class="input-section-title">Product & Traction</div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Product Stage</span>
+          </div>
+          <select id="prodstage" onchange="recalculate()" style="margin-top:8px">
+            <option value="idea">Idea / Pre-MVP</option>
+            <option value="mvp">MVP / Beta</option>
+            <option value="launched" selected>Launched + Early Revenue</option>
+            <option value="scaling">Scaling</option>
+            <option value="mature">Growth / Mature</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Competitive Moat</span>
+            <span class="field-value" id="moatScore">3</span>
+          </div>
+          <div class="score-buttons" id="moat-btns">
+            <button class="score-btn" onclick="setScore('moat',1,this)">1</button>
+            <button class="score-btn" onclick="setScore('moat',2,this)">2</button>
+            <button class="score-btn active" onclick="setScore('moat',3,this)">3</button>
+            <button class="score-btn" onclick="setScore('moat',4,this)">4</button>
+            <button class="score-btn" onclick="setScore('moat',5,this)">5</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">IP / Proprietary Tech</span>
+            <span class="field-value" id="ipScore">2</span>
+          </div>
+          <div class="score-buttons" id="ip-btns">
+            <button class="score-btn" onclick="setScore('ip',1,this)">1</button>
+            <button class="score-btn active" onclick="setScore('ip',2,this)">2</button>
+            <button class="score-btn" onclick="setScore('ip',3,this)">3</button>
+            <button class="score-btn" onclick="setScore('ip',4,this)">4</button>
+            <button class="score-btn" onclick="setScore('ip',5,this)">5</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Round Tab -->
+    <div class="tab-panel" id="tab-round">
+      <div class="input-section">
+        <div class="input-section-title">Fundraise Details</div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Amount Raising</span>
+            <span class="field-value" id="raiseVal">$500K</span>
+          </div>
+          <input type="range" id="raising" min="50" max="20000" value="500" step="50" oninput="recalculate()">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Target Dilution</span>
+            <span class="field-value" id="dilutionVal">15%</span>
+          </div>
+          <input type="range" id="dilution" min="5" max="35" value="15" step="1" oninput="recalculate()">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Projected Exit Multiple</span>
+            <span class="field-value" id="exitMultVal">10x</span>
+          </div>
+          <input type="range" id="exitmult" min="3" max="50" value="10" step="1" oninput="recalculate()">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Years to Exit</span>
+            <span class="field-value" id="exitYrVal">5 yr</span>
+          </div>
+          <input type="range" id="exityr" min="2" max="10" value="5" step="1" oninput="recalculate()">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">VC Required Return (IRR)</span>
+            <span class="field-value" id="irrVal">30%</span>
+          </div>
+          <input type="range" id="irr" min="15" max="60" value="30" step="5" oninput="recalculate()">
+        </div>
+      </div>
+      <div class="input-section">
+        <div class="input-section-title">Existing Shareholders</div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">Founder Ownership (pre-round)</span>
+            <span class="field-value" id="founderPctVal">80%</span>
+          </div>
+          <input type="range" id="founderpct" min="40" max="100" value="80" step="5" oninput="recalculate()">
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <span class="field-label">ESOP Pool</span>
+            <span class="field-value" id="esopVal">10%</span>
+          </div>
+          <input type="range" id="esop" min="0" max="25" value="10" step="1" oninput="recalculate()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Results -->
+  <div class="results">
+    <!-- Method cards -->
+    <div class="section-title">Valuation by Method</div>
+    <div class="methods-grid" id="methodsGrid">
+      <div class="method-card" style="--method-color:#f5c842">
+        <div class="method-name">Revenue Multiple</div>
+        <div class="method-value" id="m-revenue">$3.6M</div>
+        <div class="method-desc">ARR × industry multiple</div>
+        <div class="method-weight">30%</div>
+      </div>
+      <div class="method-card" style="--method-color:#e8915a">
+        <div class="method-name">Berkus Method</div>
+        <div class="method-value" id="m-berkus">$2.5M</div>
+        <div class="method-desc">Qualitative milestone scoring</div>
+        <div class="method-weight">15%</div>
+      </div>
+      <div class="method-card" style="--method-color:#6bb8a0">
+        <div class="method-name">Scorecard</div>
+        <div class="method-value" id="m-scorecard">$4.1M</div>
+        <div class="method-desc">vs. regional benchmark</div>
+        <div class="method-weight">20%</div>
+      </div>
+      <div class="method-card" style="--method-color:#a084cc">
+        <div class="method-name">VC Method</div>
+        <div class="method-value" id="m-vc">$5.2M</div>
+        <div class="method-desc">Exit value ÷ required return</div>
+        <div class="method-weight">20%</div>
+      </div>
+      <div class="method-card" style="--method-color:#5db88a">
+        <div class="method-name">DCF (5yr)</div>
+        <div class="method-value" id="m-dcf">$3.8M</div>
+        <div class="method-desc">Discounted future cash flows</div>
+        <div class="method-weight">10%</div>
+      </div>
+      <div class="method-card" style="--method-color:#e05555">
+        <div class="method-name">First Chicago</div>
+        <div class="method-value" id="m-chicago">$4.4M</div>
+        <div class="method-desc">Weighted bear/base/bull</div>
+        <div class="method-weight">5%</div>
+      </div>
+    </div>
+
+    <!-- Bar chart -->
+    <div class="chart-section">
+      <div class="section-title">Comparison Chart</div>
+      <div class="bar-chart" id="barChart"></div>
+    </div>
+
+    <!-- Scenarios -->
+    <div class="section-title">Scenario Analysis (First Chicago)</div>
+    <div class="scenarios">
+      <div class="scenario-card bear">
+        <div class="scenario-label">Bear</div>
+        <div class="scenario-val" id="scenBear">$1.8M</div>
+      </div>
+      <div class="scenario-card base">
+        <div class="scenario-label">Base</div>
+        <div class="scenario-val" id="scenBase">$4.2M</div>
+      </div>
+      <div class="scenario-card bull">
+        <div class="scenario-label">Bull</div>
+        <div class="scenario-val" id="scenBull">$9.1M</div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="section-title">Key Metrics</div>
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card">
+        <div class="kpi-name">ARR</div>
+        <div class="kpi-val" id="kpi-arr">$300K</div>
+        <div class="kpi-status good" id="kpi-arr-s">▲ Growing</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">Runway</div>
+        <div class="kpi-val" id="kpi-runway">12 mo</div>
+        <div class="kpi-status warn" id="kpi-runway-s">⚠ Raise soon</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">LTV:CAC</div>
+        <div class="kpi-val" id="kpi-ltvcac">3.2x</div>
+        <div class="kpi-status good" id="kpi-ltvcac-s">✓ Healthy</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">Post-Money</div>
+        <div class="kpi-val" id="kpi-postmoney">$5.5M</div>
+        <div class="kpi-status" id="kpi-postmoney-s" style="color:var(--text-dim)">Implied</div>
+      </div>
+    </div>
+
+    <!-- Investor Readiness -->
+    <div class="readiness-bar">
+      <div class="readiness-header">
+        <div>
+          <div class="section-title" style="margin-bottom:4px">Investor Readiness Score</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); font-family:'Montserrat',sans-serif; font-weight:500">Based on what VCs evaluate at your stage</div>
+        </div>
+        <div class="readiness-score" id="readinessScore">62</div>
+      </div>
+      <div class="readiness-track">
+        <div class="readiness-fill" id="readinessFill" style="width:62%"></div>
+      </div>
+      <div class="readiness-items" id="readinessItems"></div>
+    </div>
+
+    <!-- Cap Table -->
+    <div class="captable">
+      <div class="section-title" style="margin-bottom:16px">Post-Round Cap Table</div>
+      <div id="captableRows"></div>
+    </div>
+
+    <!-- Insights -->
+    <div class="insights">
+      <div class="section-title" style="margin-bottom:12px">AI Insights & Recommendations</div>
+      <div id="insightsList"></div>
+    </div>
+
+    <!-- Sensitivity -->
+    <div class="chart-section">
+      <div class="section-title">Sensitivity Analysis (Revenue Multiple)</div>
+      <div class="sensitivity-grid" id="sensGrid"></div>
+    </div>
+
+    <br>
+    <button class="export-btn" onclick="exportReport()">⬇ Download Valuation Report (PDF)</button>
+    <p style="font-size:0.65rem; color:var(--text-dim); text-align:center; margin-top:12px; line-height:1.6; font-family:'Montserrat',sans-serif; font-weight:500">This tool provides estimates for reference purposes only. Valuations are based on market benchmarks and qualitative inputs. Not financial or investment advice.</p>
+  </div>
+</div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+const scores = { domain:3, exit:2, tech:4, sales:3, network:3, moat:3, ip:2 };
+let currentStage = 'pre-seed';
+
+const stageBenchmarks = {
+  'pre-seed': { base: 2000000, rev_mult: 8, label: 'Pre-Seed' },
+  'seed':     { base: 6000000, rev_mult: 12, label: 'Seed' },
+  'series-a': { base: 25000000, rev_mult: 18, label: 'Series A' },
+  'series-b': { base: 80000000, rev_mult: 22, label: 'Series B' }
+};
+
+const industryMultiples = {
+  saas: 12, fintech: 10, healthtech: 9, marketplace: 8,
+  ecommerce: 4, deeptech: 15, consumer: 6, services: 3
+};
+
+const geoFactors = { us: 1.0, eu: 0.85, asia: 0.75, latam: 0.65 };
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function fmt(n) {
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + Math.round(n/1000) + 'K';
+  return '$' + Math.round(n);
+}
+
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+function getInputs() {
+  return {
+    mrr:        +document.getElementById('mrr').value * 1000,
+    growth:     +document.getElementById('growth').value / 100,
+    margin:     +document.getElementById('margin').value / 100,
+    burn:       +document.getElementById('burn').value * 1000,
+    runway:     +document.getElementById('runway').value,
+    customers:  +document.getElementById('customers').value,
+    nrr:        +document.getElementById('nrr').value / 100,
+    cac:        +document.getElementById('cac').value,
+    teamsize:   +document.getElementById('teamsize').value,
+    commitment: +document.getElementById('commitment').value,
+    tam:        +document.getElementById('tam').value * 1e9,
+    sam:        +document.getElementById('sam').value / 100,
+    mktgrowth:  +document.getElementById('mktgrowth').value / 100,
+    prodstage:  document.getElementById('prodstage').value,
+    raising:    +document.getElementById('raising').value * 1000,
+    dilution:   +document.getElementById('dilution').value / 100,
+    exitmult:   +document.getElementById('exitmult').value,
+    exityr:     +document.getElementById('exityr').value,
+    irr:        +document.getElementById('irr').value / 100,
+    founderpct: +document.getElementById('founderpct').value / 100,
+    esop:       +document.getElementById('esop').value / 100,
+    industry:   document.getElementById('industry').value,
+    bizmodel:   document.getElementById('bizmodel').value,
+    geo:        document.getElementById('geo').value,
+  };
+}
+
+// ─── Valuation Methods ───────────────────────────────────────────────────────
+function calcRevMultiple(inp) {
+  const arr = inp.mrr * 12;
+  const mult = (industryMultiples[inp.industry] || 10) * geoFactors[inp.geo];
+  const growthBonus = 1 + (inp.growth - 0.1) * 2;
+  const marginBonus = 0.7 + inp.margin * 0.5;
+  return arr * mult * Math.max(0.3, growthBonus) * marginBonus;
+}
+
+function calcBerkus(inp) {
+  const stageMax = stageBenchmarks[currentStage].base;
+  const stageMulti = { idea:0.2, mvp:0.5, launched:0.7, scaling:0.85, mature:1.0 };
+  const base = stageMax * (stageMulti[inp.prodstage] || 0.6);
+  const teamScore = (scores.domain + scores.exit + scores.tech + scores.sales + scores.network) / 25;
+  const tractionScore = Math.min(1, inp.customers / 500);
+  const moatScore = scores.moat / 5;
+  return base * (0.4 + teamScore * 0.3 + tractionScore * 0.2 + moatScore * 0.1) * geoFactors[inp.geo];
+}
+
+function calcScorecard(inp) {
+  const benchmarkVal = stageBenchmarks[currentStage].base * geoFactors[inp.geo];
+  const teamFactor = (scores.domain + scores.exit + scores.tech + scores.sales + scores.network) / 15 * 0.3;
+  const oppFactor = Math.min(1, inp.tam / 1e10) * 0.25;
+  const productFactor = scores.ip / 5 * 0.15;
+  const tractionFactor = Math.min(1, inp.customers / 300) * 0.2;
+  const compFactor = scores.moat / 5 * 0.1;
+  const totalFactor = teamFactor + oppFactor + productFactor + tractionFactor + compFactor;
+  return benchmarkVal * (totalFactor + 0.3) * inp.commitment;
+}
+
+function calcVC(inp) {
+  const arr = inp.mrr * 12;
+  const exitRevMultiple = (industryMultiples[inp.industry] || 10) * 1.5;
+  const projectedARR = arr * Math.pow(1 + inp.growth * 0.7, inp.exityr * 12 / 12);
+  const exitVal = projectedARR * exitRevMultiple;
+  const discountFactor = Math.pow(1 + inp.irr, inp.exityr);
+  const preMoneyVC = exitVal / discountFactor;
+  return preMoneyVC * geoFactors[inp.geo];
+}
+
+function calcDCF(inp) {
+  const arr = inp.mrr * 12;
+  const discountRate = inp.irr + 0.05;
+  let npv = 0;
+  for (let y = 1; y <= 5; y++) {
+    const projected = arr * Math.pow(1 + inp.growth * 0.7, y);
+    const fcf = projected * inp.margin * 0.5;
+    npv += fcf / Math.pow(1 + discountRate, y);
+  }
+  const terminalVal = (arr * Math.pow(1+inp.growth*0.7, 5) * inp.margin * 0.5 * 15) / Math.pow(1+discountRate, 5);
+  return (npv + terminalVal) * geoFactors[inp.geo];
+}
+
+function calcFirstChicago(inp) {
+  const base = calcRevMultiple(inp);
+  const bear = base * 0.4;
+  const bull = base * 2.2;
+  return { bear, base, bull, blended: bear * 0.25 + base * 0.5 + bull * 0.25 };
+}
+
+function calcBlended(methods) {
+  const weights = [0.30, 0.15, 0.20, 0.20, 0.10, 0.05];
+  return methods.reduce((s, v, i) => s + v * weights[i], 0);
+}
+
+// ─── Investor Readiness ──────────────────────────────────────────────────────
+function calcReadiness(inp) {
+  const checks = [
+    { label: 'Strong founding team', val: (scores.domain+scores.exit+scores.tech+scores.sales+scores.network)/25, threshold:0.5 },
+    { label: 'Product launched', val: inp.prodstage !== 'idea' ? 1 : 0, threshold:0.5 },
+    { label: 'Paying customers', val: Math.min(1, inp.customers/100), threshold:0.5 },
+    { label: 'Healthy gross margin', val: inp.margin, threshold:0.6 },
+    { label: 'NRR above 100%', val: inp.nrr >= 1 ? 1 : inp.nrr/1.1, threshold:0.9 },
+    { label: 'CAC payback <12mo', val: inp.cac <= 12 ? 1 : 12/inp.cac, threshold:0.5 },
+    { label: '18+ month runway', val: Math.min(1, inp.runway/18), threshold:0.7 },
+    { label: 'Defensible moat', val: scores.moat/5, threshold:0.5 },
+    { label: 'Large market (>$1B TAM)', val: Math.min(1, inp.tam/1e9), threshold:0.5 },
+    { label: 'Growth >10%/mo', val: Math.min(1, inp.growth/0.15), threshold:0.6 },
+  ];
+  const score = Math.round(checks.reduce((s,c) => s + c.val*10, 0));
+  return { score, checks };
+}
+
+// ─── UI Updates ──────────────────────────────────────────────────────────────
+function flashEl(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+}
+
+function recalculate() {
+  const inp = getInputs();
+
+  // Update display values
+  document.getElementById('mrrVal').textContent = '$' + inp.mrr/1000 + 'K';
+  document.getElementById('growthVal').textContent = Math.round(inp.growth*100) + '%/mo';
+  document.getElementById('marginVal').textContent = Math.round(inp.margin*100) + '%';
+  document.getElementById('burnVal').textContent = '$' + inp.burn/1000 + 'K/mo';
+  document.getElementById('runwayVal').textContent = inp.runway + ' mo';
+  document.getElementById('custVal').textContent = inp.customers;
+  document.getElementById('nrrVal').textContent = Math.round(inp.nrr*100) + '%';
+  document.getElementById('cacVal').textContent = inp.cac + ' mo';
+  document.getElementById('teamSizeVal').textContent = inp.teamsize;
+  document.getElementById('tamVal').textContent = '$' + inp.tam/1e9 + 'B';
+  document.getElementById('samVal').textContent = Math.round(inp.sam*100) + '%';
+  document.getElementById('mktgrowthVal').textContent = Math.round(inp.mktgrowth*100) + '%';
+  document.getElementById('raiseVal').textContent = fmt(inp.raising);
+  document.getElementById('dilutionVal').textContent = Math.round(inp.dilution*100) + '%';
+  document.getElementById('exitMultVal').textContent = inp.exitmult + 'x';
+  document.getElementById('exitYrVal').textContent = inp.exityr + ' yr';
+  document.getElementById('irrVal').textContent = Math.round(inp.irr*100) + '%';
+  document.getElementById('founderPctVal').textContent = Math.round(inp.founderpct*100) + '%';
+  document.getElementById('esopVal').textContent = Math.round(inp.esop*100) + '%';
+
+  // Calculate all methods
+  const revM = calcRevMultiple(inp);
+  const berkus = calcBerkus(inp);
+  const scorecard = calcScorecard(inp);
+  const vc = calcVC(inp);
+  const dcf = calcDCF(inp);
+  const chicago = calcFirstChicago(inp);
+
+  const methods = [revM, berkus, scorecard, vc, dcf, chicago.blended];
+  const blended = calcBlended(methods);
+
+  // Update method cards
+  const ids = ['m-revenue','m-berkus','m-scorecard','m-vc','m-dcf','m-chicago'];
+  methods.forEach((v,i) => {
+    const el = document.getElementById(ids[i]);
+    if(el) { el.textContent = fmt(v); flashEl(ids[i]); }
+  });
+
+  // Hero valuation
+  document.getElementById('heroVal').textContent = fmt(blended);
+  document.getElementById('heroRange').textContent = 'Range: ' + fmt(blended*0.5) + ' — ' + fmt(blended*2);
+  flashEl('heroVal');
+
+  // Scenarios
+  document.getElementById('scenBear').textContent = fmt(chicago.bear);
+  document.getElementById('scenBase').textContent = fmt(chicago.base);
+  document.getElementById('scenBull').textContent = fmt(chicago.bull);
+
+  // Bar chart
+  const maxV = Math.max(...methods);
+  const barColors = ['#f5c842','#e8915a','#6bb8a0','#a084cc','#5db88a','#e05555'];
+  const barNames = ['Revenue Multiple','Berkus','Scorecard','VC Method','DCF','First Chicago'];
+  const barEl = document.getElementById('barChart');
+  barEl.innerHTML = methods.map((v,i) => `
+    <div class="bar-row">
+      <div class="bar-label">${barNames[i]}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${(v/maxV*100).toFixed(1)}%;background:${barColors[i]}">
+          <span class="bar-val">${fmt(v)}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // KPIs
+  const arr = inp.mrr * 12;
+  document.getElementById('kpi-arr').textContent = fmt(arr);
+  document.getElementById('kpi-arr-s').textContent = inp.growth >= 0.15 ? '▲ Strong' : inp.growth >= 0.05 ? '→ Moderate' : '▼ Low';
+  document.getElementById('kpi-arr-s').className = 'kpi-status ' + (inp.growth >= 0.15 ? 'good' : inp.growth >= 0.05 ? 'warn' : 'bad');
+
+  document.getElementById('kpi-runway').textContent = inp.runway + ' mo';
+  document.getElementById('kpi-runway-s').textContent = inp.runway >= 18 ? '✓ Comfortable' : inp.runway >= 12 ? '⚠ Plan raise' : '⚠ Critical';
+  document.getElementById('kpi-runway-s').className = 'kpi-status ' + (inp.runway >= 18 ? 'good' : inp.runway >= 12 ? 'warn' : 'bad');
+
+  const ltv = inp.mrr / Math.max(0.01, inp.nrr < 1 ? (1-inp.nrr) : 0.05);
+  const avgRev = inp.customers > 0 ? inp.mrr / inp.customers : inp.mrr;
+  const ltvNum = avgRev * 24 * inp.margin;
+  const cacEst = avgRev * inp.cac;
+  const ltvCac = cacEst > 0 ? (ltvNum / cacEst).toFixed(1) : '–';
+  document.getElementById('kpi-ltvcac').textContent = ltvCac + 'x';
+  const ltvCacN = parseFloat(ltvCac);
+  document.getElementById('kpi-ltvcac-s').textContent = ltvCacN >= 3 ? '✓ Healthy' : ltvCacN >= 2 ? '→ Fair' : '⚠ Improve';
+  document.getElementById('kpi-ltvcac-s').className = 'kpi-status ' + (ltvCacN >= 3 ? 'good' : ltvCacN >= 2 ? 'warn' : 'bad');
+
+  const postMoney = blended + inp.raising;
+  document.getElementById('kpi-postmoney').textContent = fmt(postMoney);
+
+  // Investor readiness
+  const r = calcReadiness(inp);
+  document.getElementById('readinessScore').textContent = r.score;
+  document.getElementById('readinessFill').style.width = r.score + '%';
+  const statusClass = (v) => v >= 0.7 ? 'dot-good' : v >= 0.4 ? 'dot-warn' : 'dot-bad';
+  document.getElementById('readinessItems').innerHTML = r.checks.map(c => `
+    <div class="readiness-item">
+      <div class="readiness-dot ${statusClass(c.val)}"></div>
+      ${c.label}
+    </div>
+  `).join('');
+
+  // Cap table
+  const investorPct = inp.dilution;
+  const founderPost = inp.founderpct * (1 - investorPct);
+  const esopPost = inp.esop * (1 - investorPct);
+  const existingPost = Math.max(0, 100 - founderPost*100 - esopPost*100 - investorPct*100);
+
+  const ctRows = [
+    { name: 'Founders', pct: founderPost, color: '#f5c842' },
+    { name: 'New Investors', pct: investorPct, color: '#a084cc' },
+    { name: 'ESOP Pool', pct: esopPost, color: '#6bb8a0' },
+    { name: 'Existing Investors', pct: existingPost/100, color: '#e8915a' },
+  ];
+  document.getElementById('captableRows').innerHTML = ctRows.map(r => `
+    <div class="captable-row">
+      <div class="captable-name">${r.name}</div>
+      <div class="captable-bar-mini"><div class="captable-bar-fill" style="width:${(r.pct*100).toFixed(1)}%;background:${r.color}"></div></div>
+      <div class="captable-pct">${(r.pct*100).toFixed(1)}%</div>
+    </div>
+  `).join('');
+
+  // Insights
+  const insights = [];
+  if (inp.runway < 12) insights.push({ icon: '🔴', text: 'Critical: Under 12 months runway. Prioritize fundraising immediately or reduce burn.' });
+  if (inp.growth >= 0.2) insights.push({ icon: '🟢', text: `${Math.round(inp.growth*100)}% MoM growth is exceptional — this will command premium multiples from investors.` });
+  if (inp.nrr >= 1.1) insights.push({ icon: '🟢', text: `NRR of ${Math.round(inp.nrr*100)}% shows strong expansion revenue — a key signal of product-market fit.` });
+  if (inp.margin < 0.5) insights.push({ icon: '🟡', text: `Gross margin of ${Math.round(inp.margin*100)}% is below software benchmarks. Work on improving unit economics before Series A.` });
+  if (scores.exit <= 2) insights.push({ icon: '🟡', text: 'Low founder exit track record. Advisors with previous exits can add credibility and valuation uplift.' });
+  if (inp.tam >= 5e9) insights.push({ icon: '🟢', text: `$${(inp.tam/1e9).toFixed(0)}B+ TAM is compelling for VCs who need fund-returning outcomes.` });
+  if (inp.cac > 18) insights.push({ icon: '🔴', text: `${inp.cac}-month CAC payback is high. Reducing CAC or increasing ARPU should be a top priority.` });
+  if (inp.customers < 10) insights.push({ icon: '🟡', text: 'Limited customer base increases perceived risk. Aim for 10+ paying customers before a seed raise.' });
+  if (inp.growth >= 0.15 && inp.margin >= 0.7 && inp.nrr >= 1.0) insights.push({ icon: '✨', text: 'Your core metrics are investor-grade. Focus on TAM narrative and team credibility in your pitch.' });
+  if (insights.length === 0) insights.push({ icon: '📊', text: 'Adjust inputs to see personalized insights and recommendations for your startup.' });
+
+  document.getElementById('insightsList').innerHTML = insights.map(i => `
+    <div class="insight-item"><div class="insight-icon">${i.icon}</div><div>${i.text}</div></div>
+  `).join('');
+
+  // Sensitivity (revenue multiple vs growth rate)
+  const growthSteps = [-10,-5,0,5,10];
+  const multSteps = [0.7, 0.85, 1.0, 1.2, 1.5];
+  const baseARR = inp.mrr * 12;
+  const baseMultiple = (industryMultiples[inp.industry]||10) * geoFactors[inp.geo];
+
+  let sensHTML = '<div class="sens-cell sens-header"></div>';
+  growthSteps.forEach(g => {
+    sensHTML += `<div class="sens-cell sens-header">${g>0?'+':''}${g}% growth</div>`;
+  });
+
+  multSteps.forEach(m => {
+    sensHTML += `<div class="sens-cell sens-header">${m}x mult</div>`;
+    growthSteps.forEach(g => {
+      const adjGrowth = Math.max(0, inp.growth + g/100);
+      const adjARR = baseARR * (1 + adjGrowth * 2);
+      const val = adjARR * baseMultiple * m;
+      const ratio = val / blended;
+      const hue = ratio >= 1 ? `rgba(93,184,138,${Math.min(0.8, (ratio-1)*2+0.15)})` : `rgba(224,85,85,${Math.min(0.8,(1-ratio)*2+0.15)})`;
+      sensHTML += `<div class="sens-cell" style="background:${hue};color:var(--text)">${fmt(val)}</div>`;
+    });
+  });
+  document.getElementById('sensGrid').innerHTML = sensHTML;
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ─── Stage setter ─────────────────────────────────────────────────────────────
+function setStage(stage, btn) {
+  currentStage = stage;
+  document.querySelectorAll('.stage-badge').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  recalculate();
+}
+
+// ─── Score setter ─────────────────────────────────────────────────────────────
+function setScore(key, val, btn) {
+  scores[key] = val;
+  document.getElementById(key+'Score').textContent = val;
+  const btns = document.querySelectorAll(`#${key}-btns .score-btn`);
+  btns.forEach((b,i) => b.classList.toggle('active', i+1 === val));
+  recalculate();
+}
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+function exportReport() {
+  const inp = getInputs();
+  const revM = calcRevMultiple(inp);
+  const berkus = calcBerkus(inp);
+  const scorecard = calcScorecard(inp);
+  const vc = calcVC(inp);
+  const dcf = calcDCF(inp);
+  const chicago = calcFirstChicago(inp);
+  const methods = [revM, berkus, scorecard, vc, dcf, chicago.blended];
+  const blended = calcBlended(methods);
+
+  const win = window.open('','_blank');
+  win.document.write(`
+    <html><head><title>Valuation Report</title>
+    <style>
+      body{font-family:Georgia,serif;padding:40px;max-width:700px;margin:0 auto;color:#1a1a18}
+      h1{font-size:2rem;margin-bottom:4px} h2{font-size:1.1rem;margin:24px 0 8px;border-bottom:2px solid #f5c842;padding-bottom:4px}
+      table{width:100%;border-collapse:collapse;margin-bottom:16px}
+      td,th{padding:8px 12px;border:1px solid #eee;font-size:0.85rem}
+      th{background:#f9f8f5;font-family:monospace;font-size:0.7rem;letter-spacing:.05em}
+      .big{font-size:2.5rem;color:#b8960a;font-weight:bold}
+      .muted{color:#888;font-size:0.75rem}
+      footer{margin-top:40px;font-size:0.7rem;color:#aaa;border-top:1px solid #eee;padding-top:12px}
+    </style></head><body>
+    <div class="muted">VALUATION OS — REPORT</div>
+    <h1>Startup Valuation Report</h1>
+    <div class="muted">Generated ${new Date().toLocaleDateString()} · Stage: ${currentStage.toUpperCase()}</div>
+    <br>
+    <div class="big">${fmt(blended)}</div>
+    <div class="muted">Blended Valuation Estimate · Range: ${fmt(blended*0.5)} — ${fmt(blended*2)}</div>
+
+    <h2>Valuation by Method</h2>
+    <table>
+      <tr><th>Method</th><th>Valuation</th><th>Weight</th></tr>
+      <tr><td>Revenue Multiple</td><td>${fmt(revM)}</td><td>30%</td></tr>
+      <tr><td>Berkus Method</td><td>${fmt(berkus)}</td><td>15%</td></tr>
+      <tr><td>Scorecard Method</td><td>${fmt(scorecard)}</td><td>20%</td></tr>
+      <tr><td>VC Method</td><td>${fmt(vc)}</td><td>20%</td></tr>
+      <tr><td>DCF (5yr)</td><td>${fmt(dcf)}</td><td>10%</td></tr>
+      <tr><td>First Chicago</td><td>${fmt(chicago.blended)}</td><td>5%</td></tr>
+    </table>
+
+    <h2>Scenario Analysis</h2>
+    <table>
+      <tr><th>Bear</th><th>Base</th><th>Bull</th></tr>
+      <tr><td>${fmt(chicago.bear)}</td><td>${fmt(chicago.base)}</td><td>${fmt(chicago.bull)}</td></tr>
+    </table>
+
+    <h2>Key Inputs</h2>
+    <table>
+      <tr><th>MRR</th><td>${fmt(inp.mrr)}</td><th>Growth</th><td>${Math.round(inp.growth*100)}%/mo</td></tr>
+      <tr><th>ARR</th><td>${fmt(inp.mrr*12)}</td><th>Margin</th><td>${Math.round(inp.margin*100)}%</td></tr>
+      <tr><th>Customers</th><td>${inp.customers}</td><th>NRR</th><td>${Math.round(inp.nrr*100)}%</td></tr>
+      <tr><th>Runway</th><td>${inp.runway} mo</td><th>Industry</th><td>${inp.industry}</td></tr>
+    </table>
+
+    <footer>This report is generated by ValuationOS for informational purposes only. It does not constitute financial, investment, or legal advice. Valuations are estimates based on market benchmarks and user-provided inputs.</footer>
+    </body></html>
+  `);
+  win.document.close();
+  win.print();
+}
+
+// Init
+recalculate();
+</script>
+</body>
+</html>
